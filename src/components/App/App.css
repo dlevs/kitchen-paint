@@ -1,0 +1,53 @@
+.appWrapper {
+    margin: 0 auto;
+    max-width: 960px;
+}
+.layerWrapper {
+    position: relative;
+}
+.layer {
+    display: block;
+    max-width: 100%;
+    backface-visibility: hidden;
+}
+.activeLayer,
+.lightingLayer {
+    position: absolute;
+    top: 0;
+}
+/* layers */
+.backgroundLayer {
+    position: static;
+    z-index: 0;
+}
+.activeLayer {
+    z-index: 10;
+}
+.lightingLayer {
+    z-index: 20;
+}
+.swatchList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    background-color: #ffd380;
+}
+.swatch {
+    display: block;
+    flex: 1;
+    height: 40px;
+    background-color: #ffd380;
+}
+.hueSliderWrapper {
+    position: relative;
+    overflow: hidden;
+}
+.hueSlider {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
