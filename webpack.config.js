@@ -1,4 +1,5 @@
 const path = require('path');
+const DashboardPlugin = require('webpack-dashboard/plugin');
 const root = filepath => path.resolve(__dirname, filepath);
 // TODO: change this:
 const isDebug = true;
@@ -39,5 +40,6 @@ module.exports = {
 				options: {limit: 10000}
 			}
 		]
-	}
+	},
+	plugins: [new DashboardPlugin()]
 };

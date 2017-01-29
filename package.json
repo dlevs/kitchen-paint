@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack --config webpack.config.js --watch",
+    "start": "webpack-dashboard -- webpack --config webpack.config.js --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "color": "^1.0.3",
     "lodash": "^4.17.4",
     "preact": "^7.1.0"
   },
@@ -23,6 +24,7 @@
     "file-loader": "^0.10.0",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
-    "webpack": "2.2"
+    "webpack": "2.2",
+    "webpack-dashboard": "^0.3.0"
   }
 }
