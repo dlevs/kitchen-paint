@@ -26,22 +26,13 @@
 .lightingLayer {
     z-index: 20;
 }
-.swatchList {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    background-color: #ffd380;
-}
-.swatch {
-    display: block;
-    flex: 1;
-    height: 40px;
-    background-color: #ffd380;
-}
 .hueSliderWrapper {
     position: relative;
-    overflow: hidden;
+    height: 30px;
+}
+.hueSliderBackground {
+    width: 100%;
+    height: 100%;
 }
 .hueSlider {
     width: 100%;

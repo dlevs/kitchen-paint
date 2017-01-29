@@ -2,6 +2,7 @@ import { h, Component } from 'preact';
 import uniqueId from 'lodash/uniqueId';
 import range from 'lodash/range';
 import style from './App.css';
+import Color from 'color';
 
 const Layer = ({name, styles, fileExt = 'png'}) => (
 	<img
@@ -39,38 +40,45 @@ class Filter extends Component {
 	}
 }
 
-const Swatch = ({hue}) => (
-	// TODO: Button or slider here. Not just <li/>
-	// TODO: If this is decorational only, use divs
-	// TODO: Use canvas :)
-	<li
-		class={style.swatch}
-		style={{
-			// TODO: Prefixing
-			filter: `hue-rotate(${hue}deg)`
-		}}
-		// TODO: is this one needed?
-		data-hue={hue}
-	/>
-);
 
-const SwatchList = ({steps}) => {
-	const step = 360 / steps;
-	return (
-		<ul class={style.swatchList}>
-			{range(steps).map((value, i) => (
-				<Swatch
-					hue={Math.round(i * step)}
-					isSelected={i === 0}
-				/>
-			))}
-		</ul>
-	);
-};
+// TODO: configurable per image
+const BASE_COLOR = '#ffd380';
+
+class HueGradientCanvas extends Component {
+	componentDidMount() {
+		this.ctx = this.canvas.getContext('2d');
+		this.ctx.translate(0.5, 0.5);
+		this.drawHueGradient();
+	}
+
+	drawHueGradient() {
+		const {canvas, ctx} = this;
+		const color = Color(BASE_COLOR);
+		const width = canvas.width;
+		const step = 360 / width;
+
+		for (let i = 0; i < width; i++) {
+			console.log(i)
+			console.log(i * step)
+			ctx.fillStyle = color.rotate(i * step).string();
+			ctx.fillRect(i, 0, 1, 1)
+		}
+	}
+
+	render(props) {
+		return <canvas
+			{...props}
+			ref={(el) => this.canvas = el}
+			height="1"
+			width="720"
+		/>
+	}
+}
+
 
 const HueSlider = ({styles, value, handleInput}) => (
 	<div class={style.hueSliderWrapper} style={styles}>
-		<SwatchList steps={100}/>
+		<HueGradientCanvas class={style.hueSliderBackground}/>
 		<input
 			type="range"
 			min="0"
@@ -115,7 +123,8 @@ class App extends Component {
 				<div class="content-wrapper">
 					<div class={style.layerWrapper}>
 						<Layer name="lighting"/>
-						<Layer name="active" styles={{filter: `${filterString} hue-rotate(${filters.hue}deg)`}}/>
+						<Layer name="active"
+							   styles={{filter: `${filterString} hue-rotate(${filters.hue}deg)`}}/>
 						<Layer name="background" fileExt="jpg"/>
 					</div>
 					<HueSlider
