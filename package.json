@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "classnames": "^2.2.5",
     "color": "^1.0.3",
-    "lodash": "^4.17.4",
     "preact": "^7.1.0"
   },
   "devDependencies": {

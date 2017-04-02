@@ -1,107 +1,119 @@
 import { h, Component } from 'preact';
-import uniqueId from 'lodash/uniqueId';
-import range from 'lodash/range';
-import style from './App.css';
+import s from './App.css';
 import Color from 'color';
+import classnames from 'classnames';
 
-const Layer = ({name, styles, fileExt = 'png'}) => (
+
+const LayerImg = ({className, ...otherProps}) => (
 	<img
-		style={styles} //TODO: Rename "style" import to not conflict here
-		src={`images/layers/${name}.${fileExt}`}
+		{...otherProps}
+		className={classnames(s.layer, className)}
 		alt=""
-		class={`${style.layer} ${style[name + 'Layer']}`}
-		// TODO: OK role?
 		role="presentation"
 	/>
 );
 
-class Filter extends Component {
-	componentWillMount() {
-		this.id = uniqueId('input');
-	}
-
-	render({label, filter, handleInput, value}) {
-		return (
-			<div>
-				<label for={this.id}>{label}</label>
-				<input
-					id={this.id}
-					type="range"
-					class="js-filter-control"
-					data-filter="saturate"
-					min="0"
-					max="2"
-					value={value}
-					onInput={handleInput}
-					step="0.01"
-				/>
-			</div>
-		)
-	}
-}
-
-
-// TODO: configurable per image
-const BASE_COLOR = '#ffd380';
+const FilterControl = ({label, handleInput, value}) => (
+	<label>
+		{label}
+		<input
+			type="range"
+			min="0"
+			max="2"
+			value={value}
+			onInput={handleInput}
+			step="0.01"
+		/>
+	</label>
+);
 
 class HueGradientCanvas extends Component {
 	componentDidMount() {
 		this.ctx = this.canvas.getContext('2d');
-		this.ctx.translate(0.5, 0.5);
 		this.drawHueGradient();
 	}
 
 	drawHueGradient() {
 		const {canvas, ctx} = this;
-		const color = Color(BASE_COLOR);
-		const width = canvas.width;
-		const step = 360 / width;
+		const {baseColor} = this.props;
 
-		for (let i = 0; i < width; i++) {
-			console.log(i)
-			console.log(i * step)
+		const color = Color(baseColor);
+		const step = 360 / canvas.width;
+		let i = canvas.width;
+
+		while (i--) {
 			ctx.fillStyle = color.rotate(i * step).string();
 			ctx.fillRect(i, 0, 1, 1)
 		}
 	}
 
-	render(props) {
-		return <canvas
-			{...props}
-			ref={(el) => this.canvas = el}
-			height="1"
-			width="720"
-		/>
+	render({width = 720, ...otherProps}) {
+		return (
+			<canvas
+				{...otherProps}
+				ref={(el) => this.canvas = el}
+				height="1"
+				width={width}
+			/>
+		)
 	}
 }
 
-
-const HueSlider = ({styles, value, handleInput}) => (
-	<div class={style.hueSliderWrapper} style={styles}>
-		<HueGradientCanvas class={style.hueSliderBackground}/>
+const HueControl = ({style, value, baseColor, handleInput}) => (
+	<div className={s.hueSliderWrapper} style={style}>
+		<HueGradientCanvas
+			baseColor={baseColor}
+			className={s.hueSliderBackground}
+		/>
 		<input
 			type="range"
 			min="0"
 			max="360"
 			step="1"
-			class={style.hueSlider}
+			className={s.hueSlider}
 			value={value}
 			onInput={handleInput}
 		/>
 	</div>
 );
 
-// const filters = [
-// 	{
-// 		id: 'hue',
-// 		min: 0,
-// 		max: 360,
-// 		unit: 'deg'
-// 	},
-//
-// ];
+const Display = ({filter}) => (
+	<div className={s.layerWrapper}>
+		<LayerImg
+			src="images/layers/lighting.png"
+			className={s.lightingLayer}
+		/>
+		<LayerImg
+			src="images/layers/active.png"
+			className={s.activeLayer}
+			style={{filter}}
+		/>
+		<LayerImg
+			src="images/layers/background.jpg"
+			className={s.backgroundLayer}
+		/>
+	</div>
+);
 
 class App extends Component {
+
+	// Filter ids match CSS filters exactly.
+	filters = [
+		{
+			id: 'saturate',
+			label: 'Colourfulness'
+		},
+		{
+			id: 'brightness',
+			label: 'Brightness'
+		},
+		{
+			id: 'contrast',
+			label: 'Vibrancy'
+		},
+
+	];
+
 	state = {
 		filters: {
 			hue: 0,
@@ -111,49 +123,32 @@ class App extends Component {
 		}
 	};
 
-	componentWillUpdate() {
-		console.log(this.state)
+	getFilterCSSString() {
+		return this.filters
+			.map(({id}) => `${id}(${this.state.filters[id]})`)
+			.join(' ');
 	}
 
 	render(props, {filters}) {
-		const filterString = `saturate(${filters.saturate}) brightness(${filters.brightness}) contrast(${filters.contrast})`;
-
+		const filterString = this.getFilterCSSString();
 		return (
-			<div class={style.appWrapper}>
-				<div class="content-wrapper">
-					<div class={style.layerWrapper}>
-						<Layer name="lighting"/>
-						<Layer name="active"
-							   styles={{filter: `${filterString} hue-rotate(${filters.hue}deg)`}}/>
-						<Layer name="background" fileExt="jpg"/>
-					</div>
-					<HueSlider
-						handleInput={this.linkState('filters.hue')}
-						value={filters.hue}
-						styles={{filter: filterString}}
-					/>
-					<div class="repaint-controls">
-						<Filter
-							filter="saturate"
-							label="Colourfulness"
-							value={filters.saturate}
-							handleInput={this.linkState('filters.saturate')}
+			<div className={s.appWrapper}>
+				<Display
+					filter={`${filterString} hue-rotate(${filters.hue}deg)`}/>
+				<HueControl
+					baseColor="#ffd380"
+					handleInput={this.linkState('filters.hue')}
+					value={filters.hue}
+					style={{filter: filterString}}
+				/>
+				<div>
+					{this.filters.map(({id, label}) => (
+						<FilterControl
+							label={label}
+							value={filters[id]}
+							handleInput={this.linkState(`filters.${id}`)}
 						/>
-						<Filter
-							filter="brightness"
-							label="Brightness"
-							value={filters.brightness}
-							handleInput={this.linkState('filters.brightness')}
-						/>
-						<Filter
-							filter="contrast"
-							label="Vibrancy"
-							value={filters.contrast}
-							handleInput={this.linkState('filters.contrast')}
-						/>
-					</div>
-
-					<div class="js-repaint-style"></div>
+					))}
 				</div>
 			</div>
 		)
